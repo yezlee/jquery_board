@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<style>
+	.p1{
+		float:left; width:80%;
+	}
+	.p2{
+		float:right; width:20%;
+	}
+	hr{
+		clear : both;
+	}
+	.rep_b{
+		height : 45px;
+		vertical-align: top;
+	}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Accordion 게시판</h2>
+  <div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#accordion" href="#collapse20">제목 20</a>
+        </h4>
+      </div>
+      <div id="collapse20" class="panel-collapse collapse in"><!-- in 이게 펼쳐진다는 디폴트 -->
+        <div class="panel-body">
+        	<p class="p1">
+        		작성자 : 홍길동 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;메일 : abc@gmail.com&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        		조회수 : 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;작성날짜 : 2020.12.02
+        	</p>
+        	<p class="p2">
+        		<button type="button" idx="20" name="modify" class="action">수정</button>
+        		<button type="button" idx="20" name="delete" class="action">삭제</button>
+        	</p>
+        	<hr>
+        	<p class="p3">
+        		내용 : 가나다라마바사아자차카타파하<br> 아야어요오요우유으이
+        	</p>
+        	<p class="p4">
+        		<textarea class="area" cols="60"></textarea>
+        		<button type="button" idx="20"  name="reply" class="action rep_b">댓글등록</button><!-- 글번호가 20번이라고 가정한거 => idx="20" -->
+        	</p>
+        	
+        	
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">Collapsible Group 2</a>
+        </h4>
+      </div>
+      <div id="collapse2" class="panel-collapse collapse">
+        <div class="panel-body"></div>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">Collapsible Group 3</a>
+        </h4>
+      </div>
+      <div id="collapse3" class="panel-collapse collapse">
+        <div class="panel-body"></div>
+      </div>
+    </div>
+  </div> 
+</div>
+    
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script src="../js/board.js"></script>
+<script src="../js/jquery.serializejson.min.js"></script>
+
+<style>
+	body{
+		word-break: keep-all;
+	}
+	.pager{
+		float : left;
+		width : 115px;
+		margin : 5px;
+		margin-left : 5%;
+	}
+	.p1{
+		float:left;
+		width:80%;
+	}
+	.p2{
+		float:right;
+	}
+	hr{
+		clear : both;
+	}
+	.rep_b{
+		height : 45px;
+		vertical-align: top;
+	    margin-left: 5px;
+	}
+	.action{
+		margin-left: 5px;
+	}
+	.rep{
+		margin : 5px;
+		padding : 15px;
+		background : #f5f5f5;
+	}
+	label{
+		display : inline-block;
+		width : 100px;
+		height : 40px;
+	}
+	.panel-heading:hover{
+		background : #eaeaea;
+	}
+	
+</style>
+<script>
+	reply={}; // 객체 선언! 동적으로 객체의 속성이나 메소드를 추가할 수 있다. 
+	board={};
+	
+	
+	$(function(){
+		//listAll();
+		listPageServer(1);
+		
+		//이벤트를 줄거야! html에다가
+		//페이지 번호(1,2)를 클릭했을때 , 이벤트처리
+		
+		$('#pageList').on('click', '.paging', function(){
+			// .paging얘한테 주고싶은데 얘는 나중에 만들어진애라서 먼저 만들어진 pageList한테 먼저 주고 페이징을 나중에 쓴거야
+			
+			if($('#modify_form').css('display')!='none'){ //이 말인 즉슨, 다른곳에 이미 열려있다면
+				replyReset(); // 이런 함수를 만들거야. 저 아래다가
+			}
+			
+			currentPage = $(this).text().trim();
+			console.log(currentPage);
+			listPageServer(currentPage);
+		})
+		
+		//next버튼 클릭 이벤트
+		$('#pageList').on('click', '.next', function(){
+// 			$('.paging:last') //얘는 기본 필터고
+// 			$('.paging').last() //얘는 메소드
+
+			if($('#modify_form').css('display')!='none'){ //이 말인 즉슨, 다른곳에 이미 열려있다면
+				replyReset(); // 이런 함수를 만들거야. 저 아래다가
+			}
+
+
+			currentPage = parseInt( $('.paging').last().text() ) + 1;
+			listPageServer(currentPage);
+		})
+		
+		//prev버튼 클릭 이벤트
+		$('#pageList').on('click', '.prev', function(){
+// 			$('.paging:first') //얘는 기본 필터고
+// 			$('.paging').first() //얘는 메소드
+
+			if($('#modify_form').css('display')!='none'){ //이 말인 즉슨, 다른곳에 이미 열려있다면
+				replyReset(); // 이런 함수를 만들거야. 저 아래다가
+			}
+
+			currentPage = parseInt( $('.paging').first().text() ) - 1;
+			listPageServer(currentPage);
+		})
+		
+		
+		//각 버튼의 이벤트 - 수정, 삭제, 댓글 등록, 댓글 수정, 댓글 삭제 
+		$('.box').on('click', '.action', function(){
+			
+			v_idx = $(this).attr('idx');
+			v_name= $(this).attr('name');
+			
+			if(v_name=='modify'){
+				alert(v_idx + "번글 수정")
+				
+				$('#u_Modal').modal('show');	
+				
+				
+				//수정할 내용을 모달창에 출력 - 이것만 불러온거. 비밀번호는 여기서 안블러와서 수정할때 값이 없는것
+				pbody = $(this).parents('.panel');
+				name = $(pbody).find('.n_span').text(); //이름
+				mail = $(pbody).find('.m_span').text(); //메일
+				cont = $(pbody).find('.c_span').html(); //내용
+				cont = cont.replace(/<br>/g, "\n");
+				
+				title = $(pbody).find('a').text(); //제목
+				
+				
+				//u_form에다가 출력
+				$('#u_form #name').val(name);
+				$('#u_form #subject').val(title);
+				$('#u_form #mail').val(mail);
+				$('#u_form #cont').val(cont);
+				
+				
+				
+				
+			}else if(v_name=='delete'){
+// 				alert(v_idx + "번글 삭제")
+				
+				boardDeleteServer(this);
+				
+				
+			}else if(v_name=='reply'){
+				//alert(v_idx + "번글의 댓글 등록")
+				//reply테이블에 저장해야지. - renum,bonum,name,cont,redate
+				
+			 	reply.bonum = v_idx;
+				
+				r_name1 = Math.floor(Math.random() * 50+1);
+				r_name2 = String.fromCharCode(Math.random() * 26+65); //65부터 90까지 대문자 (26+95-1)=90
+				r_name3 = String.fromCharCode(Math.random() * 26+97); //97-122 // 26+97-1=122
+				
+				//String.fromCharCode()
+				//The fromCharCode() method converts Unicode values into characters.
+				//Note: This is a static method of the String object, and the syntax is always String.
+				
+				
+				reply.name = r_name2 + r_name3 + r_name1;
+				reply.cont = $(this).parent().find('.area').val(); // .val();이건 getter로 가져오는거야 
+				//어떤 댓글인지 알아야해서 부모로 올라갔다가 다시 find써서 찾는거야					
+				
+				//댓글쓰고나서 댓글창의내용 지우게끔
+				$(this).parent().find('.area').val("");  // .val(""); 이건 setter로 ""공백을 넣는거 
+				
+				
+				
+				//ajax를 통해서 reply객체를 서버로 보내기
+				//ajax는 비동기야.. 트랜잭션이 되지 않는거지
+				 
+				replySaveServer(this) // v_idx, this얘를 가져가야돼. v_idx는 전역이라 안써주고 그냥 this만 쓰면됨
+				//this가 필요한 이유는 댓글달때등록하는 그 버튼 아래에 댓글을 보여주게하려고
+				
+				//그래서  세이브서버하고 바로 리스트서버 호출하면 안돼. 세이브 하지도 않았는데 리스트 뽑으면 저장됐는데 실제로 보이지가 않아.
+				//replyListServer() 그래서 이걸 여기서 하면 안돼
+				
+				
+				// +++ 얘는 세이브들렸다가 가는데 아래는 세이브 안가고 this가지고 바로 replyListServer로 가는거
+			
+				
+			}else if(v_name=='list'){ //제목 클릭하면 => 해당댓글을 가져오기
+				
+				//여기서 조회수 증가!!!!!!!!!!!
+				//클릭했을때 this를 기준으로 부모를 찾아야해
+				v_class = $(this).parents('.panel').find('.in').attr('class');
+				console.log("class= " + v_class);
+				
+				//닫혔을때(in이 없는 상태) 제목을 클릭하면, class= undefined 이렇게 뜸. 이럴때 조회수가 증가
+				//undefined - 얘는 일반문자열이 아니기 때문에 	if(v_class=="undefined") 이렇게 == 이걸로만 구분할수가 없다. 그래서 typeof를 써야험
+				if(typeof v_class=="undefined"){
+					hitUpdateServer(this); //여기서 this는 위에  }else if(v_name=='list'){ //제목 클릭하면 => 해당댓글을 가져오기 === 이거
+						
+				}
+				
+				
+				replyListServer(this) //this ==> list : a태그
+				
+			}else if(v_name=='r_modify'){
+				//alert(v_idx + "번 댓글을 수정합니다.")
+				
+				//수정폼이 이미 열려있는지 비교해야함. 다른곳에 열려있다면 다시 닫아야돼.(첫번째는 상관없는데 두번째부터.)
+				//다른곳에 열려있다면 열려있는 수정 폼을 닫는다 - 폼자체를 바디 태그로 다시 append해줘야하는거. 그래야 잘라냈던 내용이 살고 수정위치로 추가할때 append 쓸수있음
+				if($('#modify_form').css('display')!='none'){ //이 말인 즉슨, 다른곳에 이미 열려있다면
+					replyReset(); // 이런 함수를 만들거야. 저 아래다가
+				}
+				
+				
+				
+				
+				
+				//원래 내용을 가져온다.
+				modify_cont = $(this).parents('.rep').find('.cont').html(); //br태그 포함이라서 text아니고 html
+				
+				//br태그를 \n으로 바꿔줘야해. html에서 br태그를 못읽어서
+				modify_cont = modify_cont.replace(/<br>/g, "\n");
+				
+				//수정내용을 수정 폼의 text에 출력해야지 <!-- 댓글 수정을 위한 폼 --> 여기에!!!!!!
+				$('#text').val(modify_cont);
+				
+				//append는 잘라내기 붙여내기임. .append('#modify_form'); 이게 원래있던데서 이걸 쓴곳에다가 붙여넣는거
+				//body에 있는 <!-- 댓글 수정을 위한 폼 --> 이걸 !! 댓글 수정 위치로 추가한다.
+				$(this).parents('.rep').find('.cont').empty().append($('#modify_form')); //왜 $이거왜붙여또?????????????????????
+				$('#modify_form').show();
+				
+			}else if(v_name=='r_delete'){
+				//alert(v_idx + "번 댓글을 삭제합니다.")
+				replyDeleteServer(this);
+				//listPageServer(); 원래 이렇게 해야하는데 ajax쓰면 그 부분만 쏙 바꿀수있어
+
+				//댓글 화면 삭제를  -replyDeleteServer(); 이거 이후에 여기서 하면 비동기일때는 안돼. 실제로 지워지지도 않았는데 비동기니까 그냥 replyDeleteServer();하고 돌아와서 삭제를 실행할수있어
+				//ajax를 쓰지않는 동기일때는, 어차피 화면다시 불러오고 구성하고 해야해서 동기버전이니까 상관이 없어. 근데 ajax쓸때는 success한곳에서 화면을 삭제해야돼. 그래서 여기서 안하고 ajax의 success에서 할거야 
+				
+			}	
+		})
+		
+		
+		
+		//댓글단거 수정할때 수정버튼 누르고 또 다른 수정버튼 누르면, 원래 수정하려던 내용이 다 사라짐. append한거라서 사라짐. 
+		//그걸 방지하려고 만든 함수!!!!!!!!!!
+		function replyReset(){ 
+			//원래 댓글 내용에 있었던 span 검색
+			span_tag = $('#modify_form').parent(); //여긴 parent뒤에 s 안붙어
+			
+			//body로 다시 수정폼을 보낸다.
+			$('body').append($('#modify_form'));
+			
+			//그리고 다시 수정폼을 감추는거
+			$('#modify_form').hide();	
+			
+			//그리고 나서  span_tag내용으로   span에 원래 있던 내용을 다시 출력 span_tag는 변수라서 '' 안붙여
+			$(span_tag).html(modify_cont.replace(/\n/g, "<br>"));
+		}
+		
+		
+		
+		//댓글 수정 폼에서 확인  버튼 클릭
+		$('#btnOk').on('click', function(){
+			//alert(v_idx);
+			
+			//수정한 내용 가져오기
+			modify_cont = $('#text').val();
+			
+			//위에 수정한 내용 가져온다음에 수정폼은 다시 사라지고, 수정 내용으로 다시 출력해야지
+			span_tag2 = $('#modify_form').parent();
+			$('body').append($('#modify_form'));
+			$('#modify_form').hide();
+			
+			$(span_tag2).html(modify_cont.replace(/\n/g, "<br>"));
+			
+			
+			
+			replyModifyServer(); //v_idx와 modify_cont를 가져가야지 - ajax호출하는것임!!!!!!!!!!!!!!!!!!(js파일에)
+			//alert(modify_cont);
+			
+			
+			
+		})
+		
+		//댓글 수정 폼에서 취소 버튼 클릭 - 심플하게 replyReset() 이 함수 불러오면됨 
+		$('#btnReset').on('click',function(){
+			if($('#modify_form').css('display')!='none'){ //이 말인 즉슨, 다른곳에 이미 열려있다면
+				replyReset(); // 이런 함수를 만들거야. 저 아래다가
+			}
+		})
+		
+		
+		
+// 		<!--  모달창 여는 방법 2개있음. 이거 2번 -->
+// 		//글쓰기 버튼 이벤트
+// 		$('#write').on('click', function(){
+// 			//글쓰기 창 - 을 모달로 가져올거야
+// 			//클릭하면 뜨는거지
+// 			$('#w_Modal').modal('show');
+			
+// 		})		
+		
+		
+//		본문의 버튼에서  data-toggle="modal" data-target="#w_Modal" ==>	  모달창 여는 방법 2개있음. 이거 1번	
+//		이렇게 하면 위의 이벤트가 필요없음 
+		
+// 글쓰기 폼에서 확인버튼 클릭했을때 이벤트
+	$('#w_send').on('click', function(){
+		// 입력한 모든 값을 가져오는  name = $('#name').val() ///  subject = $('#subject').val()
+		// data = {"writer " :name , "subject" : subject}
+		// 이렇게 만들어야해
+		// 근데 serialize를 사용하면 한번에 가능함!!!!!!
+		// serialize쓸때는 속성 name이 매우 중요!!! 이게 VO랑 일치해야함
+		
+		console.log( $('#w_form').serializeJSON());
+		
+		
+		boardSaveServer();
+		
+		//모달창 닫기
+		$('#w_Modal').modal('hide');
+		$('#w_form .txt').val("");
+		
+	})
+
+
+	//글수정창에서 글 수정 후 확인버튼 클릭
+	$('#u_send').on('click', function(){
+		
+		//모달창에 수정된 내용을 가져온다	 - getter만 있고 setter는 없어 ()안에 아무것도 없는게 세터 없는거	 
+		board.writer = $('#u_form #name').val();
+		board.subject = $('#u_form #subject').val();
+		board.mail = $('#u_form #mail').val();
+		board.content = $('#u_form #cont').val();		
+		board.password = $('#u_form #pass').val();		
+		board.seq = v_idx;		
+		
+		boardUpdateServer();
+		$('#u_Modal').modal('hide');
+		$('#u_form .txt').val("");
+		
+		
+		
+	})
+	
+	
+
+
+
+})
+</script>
+</head>
+<body>
+
+
+	<h1 style="margin-left: 10px;">게시판</h1>
+	<br>
+	<input  data-toggle="modal" data-target="#w_Modal" type="button" value="글쓰기" id="write" style="margin-left: 10px;"> <!--  모달창 여는 방법 2개있음. 이거 1번 -->
+	<br><br><br>
+	<div class="box">
+	</div>
+	<br>
+	<br>
+	<div id="pageList"></div>
+	
+	
+	
+		<!-- 댓글 수정을 위한 폼 -->
+	<div id="modify_form" style="display:none;">
+		<textarea id="text" rows="5" cols="20"></textarea>
+		<input type="button" value="확인" id="btnOk">
+		<input type="button" value="취소" id="btnReset">
+	</div>
+		
+	
+	
+	
+		<!-- Modal  본문 글쓰기 -->
+	<div id="w_Modal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h3 class="modal-title">ㅇㅇ글쓰기</h3>
+	      </div>
+	      <div class="modal-body">
+	      	<form id = "w_form"><!--		(곧장 위에 tesp.jsp가 실행되지 않도록 onsubmit = "return false; 이걸 써줘야함)-->
+				<hr><br>
+				<label>이름 : </label><input type='text' class="txt" id='name' name='writer'><br>
+				<label>제목 : </label><input type='text' class="txt" id='subject' name='subject'><br>			
+				<label>이메일 : </label><input type='text' class="txt" id='mail' name='mail'><br>					
+				<label>비밀번호 : </label><input type='password' class="txt" id='pass' name='password'><br>
+				<label>내용 : </label><br>
+				<textarea rows='10' cols='50' name='content' class="txt" id='cont'></textarea><br>
+				<input type='button' value='확인' id='w_send'><br>
+				<hr>
+			</form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	
+	  </div>
+	</div>	<!-- Modal -->
+	
+	
+		<!-- Modal 본문 수정-->
+	<div id="u_Modal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+	
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h3 class="modal-title">글쓰기</h3>
+	      </div>
+	      <div class="modal-body">
+	      	<form id = "u_form">	
+<!--		(곧장 위에 tesp.jsp가 실행되지 않도록 onsubmit = "return false; 이걸 써줘야함)-->
+			<hr><br>
+			<label>이름 : </label><input type='text' class="txt" id='name' name='writer'><br>
+			<label>제목 : </label><input type='text' class="txt" id='subject' name='subject'><br>			
+			<label>이메일 : </label><input type='text' class="txt" id='mail' name='mail'><br>					
+			<label>비밀번호 : </label><input type='password' class="txt" id='pass' name='password'><br>
+			<label>내용 : </label><br>
+			<textarea rows='10' cols='50' name='content' class="txt" id='cont'></textarea><br>
+			<input type='button' value='확인' id='u_send'><br>
+			<hr>
+		</form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	
+	  </div>
+	</div>	<!-- Modal -->
+	
+	
+</body>
+</html>

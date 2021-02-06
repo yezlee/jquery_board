@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/dtd-map-2.dtd">
+	
+<sqlMap namespace="board">
+	<select id="listAll" resultClass="boardVo">
+		SELECT * FROM board1 ORDER BY seq DESC
+	</select>	
+	<select id="listPage" resultClass="boardVo" parameterClass="map">
+		SELECT A.* FROM (
+			SELECT rownum as rnum, B.*  FROM (
+				SELECT * FROM board1 
+				ORDER BY seq DESC) B
+				<![CDATA[
+			WHERE rownum <= #end#) A 
+		WHERE A.rnum >= #start#
+		]]>	
+	</select>
+	<select id ="getTotalCount" resultClass="int">
+		SELECT count(*) FROM board1
+	</select>
+
+	<insert id ="insertBoard" parameterClass="boardVo">
+		INSERT INTO board1 VALUES( board1_seq.nextval, #subject#, #writer#, #mail#, #password#, #content#, 0, #wip#, sysdate)
+		
+		<selectKey keyProperty="seq" resultClass="int">
+			SELECT board1_seq.currval FROM dual
+		</selectKey>
+		
+	</insert>
+		
+	<delete id="deleteBoard" parameterClass="int">
+		DELETE FROM board1 WHERE seq = #data#
+	</delete>	
+	
+	<update id="updateBoard" parameterClass="boardVo">
+		UPDATE board1 SET subject = #subject#, password = #password#, mail = #mail#, content = #content#, wdate = sysdate WHERE seq = #seq#
+	</update>
+	
+	
+	<update id="hitUpdate" parameterClass="int">
+		UPDATE board1 SET hit = hit+1 WHERE seq = #data#
+	</update>
+	
+
+</sqlMap>	

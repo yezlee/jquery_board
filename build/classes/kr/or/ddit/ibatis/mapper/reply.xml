@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/dtd-map-2.dtd">
+	
+<sqlMap namespace="reply">
+	<insert id="insertReply" parameterClass="replyVo">
+		INSERT INTO reply VALUES(reply_seq.nextval, #bonum#, #name#, #cont#, sysdate)
+		
+		<selectKey keyProperty="renum" resultClass="int">
+			SELECT reply_seq.currval FROM dual 
+		</selectKey>
+	
+	</insert>
+	
+	<select id="listReply" parameterClass="int" resultClass="replyVo">
+		SELECT * FROM reply WHERE bonum = #data# ORDER BY redate DESC
+	</select>
+	
+	
+	<update id="updateReply" parameterClass="replyVO">
+		UPDATE reply SET cont=#cont#, redate=sysdate WHERE renum=#renum#
+	</update>
+	
+	<delete id="deleteReply" parameterClass="int">
+		DELETE reply WHERE renum=#data#
+	</delete>
+	
+</sqlMap>	
